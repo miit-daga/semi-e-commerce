@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql" 
+  url      = env("DATABASE_URL")
+}
+
+model Category {
+  id            Int            @id @default(autoincrement())
+  name          String         @unique
+  subCategories SubCategory[]
+
+  @@index([name])
+}
+
+model SubCategory {
+  id            Int       @id @default(autoincrement())
+  name          String
+  categoryId    Int
+  category      Category  @relation(fields: [categoryId], references: [id])
+  parts         Part[]
+
+  @@unique([name, categoryId]) 
+  @@index([name]) 
+  @@index([categoryId]) 
+}
+
+model Part {
+  id            Int         @id @default(autoincrement())
+  partNumber    String      @unique
+  subCategoryId Int
+  subCategory   SubCategory @relation(fields: [subCategoryId], references: [id])
+  datasheetLink String?
+  specifications Specification?
+
+  @@index([partNumber]) 
+  @@index([subCategoryId]) 
+}
+
+model Specification {
+  id                Int     @id @default(autoincrement())
+  partId            Int     @unique
+  part              Part    @relation(fields: [partId], references: [id])
+
+  vdss              Float?
+  vgs               Float? 
+  vthMin            Float? 
+  vthMax            Float?  
+  idAt25            Float? 
+  vthMaxValue       Float? 
+  ron4_5v           Float? 
+  ron10v            Float? 
+
+  // Flags for empty cells with dash (-) that indicate an association
+  hasVdss           Boolean @default(false)
+  hasVgs            Boolean @default(false)
+  hasVthMin         Boolean @default(false)
+  hasVthMax         Boolean @default(false)
+  hasIdAt25         Boolean @default(false)
+  hasVthMaxValue    Boolean @default(false)
+  hasRon4_5v        Boolean @default(false)
+  hasRon10v         Boolean @default(false)
+}
